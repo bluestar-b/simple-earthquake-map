@@ -31,9 +31,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
       - name: Install pnpm
-        run: curl -fsSL https://get.pnpm.io/install.sh | sh -  # Install pnpm
+        run: |
+          export SHELL=/bin/bash  # Explicitly set shell
+          curl -fsSL https://get.pnpm.io/install.sh | sh -  # Install pnpm
       - name: Install dependencies with pnpm
-        run: pnpm install
+        run: pnpm install --no-fund  # Install dependencies using pnpm
       - name: Build
         run: pnpm run build  # Build using pnpm
       - name: Setup Pages
