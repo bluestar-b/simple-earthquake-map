@@ -36,7 +36,7 @@ jobs:
           node-version: 20
           cache: 'npm'
       - name: Install dependencies
-        run: npm install  # switched from pnpm to npm
+        run: npm install --no-package-lock --no-fund
       - name: Build
         run: npm run build
       - name: Setup Pages
