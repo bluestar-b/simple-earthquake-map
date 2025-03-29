@@ -139,7 +139,35 @@ function removeInvisibleMarkers() {
   });
 }
 
-//console.log(JSON.stringify(await fetchEarthquakeData()));
+const newEarthQuakeIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" fill="#7b7d00" viewBox="0 0 256 256"><path d="M116,106.32V176a12,12,0,0,0,24,0V106.32a44,44,0,1,0-24,0ZM128,44a20,20,0,1,1-20,20A20,20,0,0,1,128,44ZM244,176c0,21.59-23.9,34-38.15,39.48C184.86,223.56,157.22,228,128,228c-57.64,0-116-17.86-116-52,0-22.23,26.12-40.2,69.88-48.06a12,12,0,1,1,4.24,23.62C51.93,157.71,36,169.78,36,176c0,4,7.12,11.07,22.77,17.08,18.3,7,42.89,10.92,69.23,10.92s50.93-3.88,69.23-10.92C212.87,187.07,220,180,220,176c0-6.22-15.93-18.29-50.12-24.44a12,12,0,1,1,4.24-23.62C217.88,135.8,244,153.77,244,176Z"></path></svg>`;
+
+const createMagnitudeMarker = (magnitude) => {
+  let color;
+
+  if (magnitude >= 8) {
+    color = "#4B2C2B";
+  } else if (magnitude >= 7) {
+    color = "#7A3B3B";
+  } else if (magnitude >= 6) {
+    color = "#9B7D57";
+  } else if (magnitude >= 5) {
+    color = "#A69E6A";
+  } else if (magnitude >= 4) {
+    color = "#C5C79E";
+  } else if (magnitude >= 3) {
+    color = "#B0B5A2";
+  } else {
+    color = "#D1D1D1";
+  }
+
+  //Icon from: https://phosphoricons.com/?color=%220000ff%22&q=%22map%22&weight=%22bold%22&size=32
+
+  return `
+    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="${color}" viewBox="0 0 256 256">
+      <path d="M188,72a60,60,0,1,0-72,58.79V232a12,12,0,0,0,24,0V130.79A60.09,60.09,0,0,0,188,72Zm-60,36a36,36,0,1,1,36-36A36,36,0,0,1,128,108Z"></path>
+    </svg>
+  `;
+};
 
 async function displayEarthquakesOnMap() {
   const earthquakes = await fetchEarthquakeData();
@@ -149,37 +177,54 @@ async function displayEarthquakesOnMap() {
       const lon = parseFloat(quake.longitude);
 
       if (isInViewport(lat, lon)) {
-        const popup = new maplibregl.Popup({ offset: 16 }).setHTML(`
-  <h3>Earthquake Details</h3>
-  <strong>Location:</strong> ${quake.place || "Unknown"} <br>
-  <strong>Lat/Lon:</strong> ${lat}, ${lon}<br>
-  <strong>Occurred:</strong> ${new Date(quake.time).toLocaleString("en-GB", {
-    hour12: false,
-    timeZoneName: "short",
-  })} <br>
-  <strong>Magnitude:</strong> ${quake.mag} (${quake.magType} scale) <br>
-  <strong>Depth:</strong> ${quake.depth} km <br>
-  <strong>Horizontal Error:</strong> ${quake.horizontalError || "Not Available"} km <br>
-  <strong>Depth Error:</strong> ${quake.depthError || "Not Available"} km <br>
-  <strong>Magnitude Error:</strong> ${quake.magError || "Not Available"} <br>
-  <strong>Magnitude Source:</strong> ${quake.magSource || "Not Available"} <br>
-  <strong>Location Source:</strong> ${quake.locationSource || "Not Available"} <br>
-  <strong>Updated:</strong> ${new Date(quake.updated).toLocaleString("en-GB", {
-    hour12: false,
-    timeZoneName: "short",
-  })} <br>
-  <strong>Event Type:</strong> ${quake.type || "Unknown"} <br>
-  <strong>Network:</strong> ${quake.net || "Not Available"} <br>
-  <strong>ID:</strong> ${quake.id || "Unknown"} <br>
-  <strong>Number of Stations Reporting:</strong> ${quake.nst || "Unknown"} <br>
-  <strong>RMS Value (Quality of Data):</strong> ${quake.rms || "Not Available"} <br>
-  <strong><a href="https://earthquake.usgs.gov/earthquakes/eventpage/${quake.id}" target="_blank">USGS event page</a></strong>
-`);
+        const magnitude = quake.mag;
+        const svgIcon = createMagnitudeMarker(magnitude);
 
-        const marker = new maplibregl.Marker()
+        const el = document.createElement("div");
+        el.className = "marker";
+        el.style.backgroundImage = `url('data:image/svg+xml;base64,${btoa(svgIcon)}')`;
+        el.style.width = "32px";
+        el.style.height = "32px";
+        el.style.pointerEvents = "auto";
+
+        const marker = new maplibregl.Marker({ element: el })
           .setLngLat([lon, lat])
-          .setPopup(popup)
           .addTo(map);
+
+        const popup = new maplibregl.Popup({ offset: 16 }).setHTML(`    
+          <h3>Earthquake Details</h3>    
+          <strong>Location:</strong> ${quake.place || "Unknown"} <br>    
+          <strong>Lat/Lon:</strong> ${lat}, ${lon}<br>    
+          <strong>Occurred:</strong> ${new Date(quake.time).toLocaleString(
+            "en-GB",
+            {
+              hour12: false,
+              timeZoneName: "short",
+            },
+          )} <br>    
+          <strong>Magnitude:</strong> ${quake.mag} (${quake.magType} scale) <br>    
+          <strong>Depth:</strong> ${quake.depth} km <br>    
+          <strong>Horizontal Error:</strong> ${quake.horizontalError || "Not Available"} km <br>    
+          <strong>Depth Error:</strong> ${quake.depthError || "Not Available"} km <br>    
+          <strong>Magnitude Error:</strong> ${quake.magError || "Not Available"} <br>    
+          <strong>Magnitude Source:</strong> ${quake.magSource || "Not Available"} <br>    
+          <strong>Location Source:</strong> ${quake.locationSource || "Not Available"} <br>    
+          <strong>Updated:</strong> ${new Date(quake.updated).toLocaleString(
+            "en-GB",
+            {
+              hour12: false,
+              timeZoneName: "short",
+            },
+          )} <br>    
+          <strong>Event Type:</strong> ${quake.type || "Unknown"} <br>    
+          <strong>Network:</strong> ${quake.net || "Not Available"} <br>    
+          <strong>ID:</strong> ${quake.id || "Unknown"} <br>    
+          <strong>Number of Stations Reporting:</strong> ${quake.nst || "Unknown"} <br>    
+          <strong>RMS Value (Quality of Data):</strong> ${quake.rms || "Not Available"} <br>    
+          <strong><a href="https://earthquake.usgs.gov/earthquakes/eventpage/${quake.id}" target="_blank">USGS event page</a></strong>    
+        `);
+
+        marker.setPopup(popup);
         activeMarkers.push({ marker, latitude: lat, longitude: lon });
 
         await sleep(10);
