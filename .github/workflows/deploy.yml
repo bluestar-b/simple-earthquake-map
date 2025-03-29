@@ -30,17 +30,12 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Set up Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: 'npm'
-      - name: Create empty package-lock.json
-        run: echo '{}' > package-lock.json  # Creates an empty lock file
-      - name: Install dependencies
-        run: npm install --no-package-lock --no-fund
+      - name: Install pnpm
+        run: curl -fsSL https://get.pnpm.io/install.sh | sh -  # Install pnpm
+      - name: Install dependencies with pnpm
+        run: pnpm install
       - name: Build
-        run: npm run build
+        run: pnpm run build  # Build using pnpm
       - name: Setup Pages
         uses: actions/configure-pages@v4
       - name: Upload artifact
