@@ -34,8 +34,9 @@ jobs:
         run: |
           export SHELL=/bin/bash  # Explicitly set shell
           curl -fsSL https://get.pnpm.io/install.sh | sh -  # Install pnpm
+          export PATH=$HOME/.local/share/pnpm:$PATH  # Add pnpm to PATH
       - name: Install dependencies with pnpm
-        run: pnpm install --no-fund  # Install dependencies using pnpm
+        run: pnpm install # Install dependencies using pnpm
       - name: Build
         run: pnpm run build  # Build using pnpm
       - name: Setup Pages
