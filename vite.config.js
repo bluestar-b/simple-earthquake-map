@@ -1,4 +1,5 @@
 export default {
+  base: "/simple-earthquake-map/",
   build: {
     rollupOptions: {
       output: {
